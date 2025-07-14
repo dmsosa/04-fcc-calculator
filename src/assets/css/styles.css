@@ -11933,6 +11933,10 @@ body {
   z-index: 1;
   outline: #fff366 solid 0.025rem;
 }
+.calculator-key:active, .calculator-key:focus {
+  background-color: #fff366 !important;
+  color: #04212d !important;
+}
 .calculator-key.key-black {
   background-color: #222;
   color: #eee;
@@ -11953,8 +11957,14 @@ body {
   display: flex;
   flex-direction: column;
 }
-.calculator-display h1, .calculator-display .h1, .calculator-display h3, .calculator-display .h3 {
-  flex: 1 1 100%;
+.calculator-display input {
+  cursor: default;
+  border: none;
+  background-color: transparent;
+  transition: font-size 0.4s ease;
+}
+.calculator-display input:focus, .calculator-display input:active {
+  outline: none;
 }
 
 /*# sourceMappingURL=styles.css.map */

@@ -66,6 +66,10 @@ body {
         z-index: 1;
         outline: $warning solid 0.025rem;
     }
+    &:active, &:focus {
+        background-color: $warning !important;
+        color: $dark !important;
+    }
     &.key-black {
         background-color: #222;
         color: #eee;
@@ -86,7 +90,13 @@ body {
     min-height: 5rem;
     display: flex;
     flex-direction: column;
-    h1,h3 {
-        flex: 1 1 100%;
+    input {
+        cursor: default;
+        border: none;
+        background-color: transparent;
+        transition: font-size 0.4s ease;
+        &:focus, &:active {
+            outline: none;
+        }
     }
 }

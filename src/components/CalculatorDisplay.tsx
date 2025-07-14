@@ -3,11 +3,11 @@ import * as React from 'react';
 export interface ICalculatorProps {
 }
 
-export function CalculatorDisplay({input, output}) {
+export function CalculatorDisplay({display, result}) {
   return (
     <div id='display' className='calculator-display'>
-      <h3 className='text-right'>{input}</h3>
-      <h1 className='text-right'>{output}</h1>
+      <input className='text-right h3' value={display} readOnly/>
+      <input className='text-right h1' value={result} readOnly/>
     </div>
   );
 }
