@@ -12,8 +12,8 @@ export function Calculator({}) {
     const [ operator, setOperator ] = React.useState('');
     const [ result, setResult ] = React.useState(0);
   return (
-    <div id='calculator'>
-      <CalculatorDisplay display={display} result={`= ${result}`}/>
+    <div id='calculator' className='container mw-550'>
+      <CalculatorDisplay display={display} result={result}/>
       <CalculatorKeyboard 
         display={display} setDisplay={setDisplay}
         firstOperand={firstOperand} setFirstOperand={setFirstOperand }
