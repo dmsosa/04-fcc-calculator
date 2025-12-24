@@ -1,0 +1,66 @@
+@import './themes/themes';
+
+@mixin generateColorVariables() {
+    @each $name, $value in $colors {
+        --c-#{name}: #{$value};
+    }
+}
+
+@mixin generateThemeValues() {
+    @each $themeName, $themeMap in $themeMaps {
+        //creates/adds to list of theme names
+        $themeNames: append($themeNames, $themeNames, $separator: comma) !global;
+        @each $key, $value in $themeMap {
+            @if not map-has-key($themeValues, $key) {
+                $themeValues: map-merge($themeValues, ($key: ($themeName: $value)) ) !global;
+            } @else {
+                $prevKeyMap: map-get($themeValues, $key);
+                @if not map-has-key($prevKeyMap, $themeName) {
+                    $newKeyMap: map-merge($prevKeyMap, ( $themeName: $value ) );
+                    $themeValues: map-merge($themeValues, ( $key: $newKeyMap ) ) !global;
+                }
+            }
+        };
+    }
+    @debug $themeValues;
+}
+
+@mixin generateThemeVariables() {
+    @each $key, $keyMap in $themeValues {
+        @each $themeName, $value in $keyMap {
+            --theme-#{$key}-#{$themeName}: $value;
+        }
+    }
+}
+
+@mixin themify($property, $key) {
+    @each $themeName, $themeMap in $themeMaps {
+        @if themeExists($key, $themeName) {
+            $value: getThemeValue($key, $themeName);
+            .theme-#{$themeName} & {
+                #{$property}: $value;
+                #{$property}: var(--theme-#{$key}-#{$themeName}, $value);
+            }
+        } @else if $themeName != 'default' and $themeName != 'light' and $themeName != 'dark' { 
+            //check for legacy references, don't error on those
+            @error "Property #{$key} doesn't exist in #{$themeName}";
+        }
+    }
+}
+
+
+// Ich mochte mixin, um fur jedes theme, css variabeln uberschreiben
+@mixin themeOverrideBsVariables($themeName, $themeMap) {
+    &  {
+        @each $key, $value in $themeMap {
+        --#{$prefix}#{$key}: #{$value} !important;
+        @debug 'applying theme' $prefix 'with keys ' $key ' and value ' $value ': ' --#{$prefix}#{$key}':' #{$value};
+    }
+    }
+}
+
+@each $color, $value in $theme-colors {
+  .swatch-#{$color} {
+    color: color-contrast($value);
+  }
+}
