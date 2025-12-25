@@ -2,7 +2,7 @@
 
 // import { useState } from "react";
 
-import { useState, type MouseEvent } from "react";
+import { useState } from "react";
 
 // export default function App() {
 //   const [display, setDisplay] = useState("0");
@@ -68,23 +68,112 @@ import { useState, type MouseEvent } from "react";
 //   );
 // }
 
+
+const DIGITS = ['7','8','9','4','5','6', '1','2','3', '+/-', '0', '.', ];
+const OPERATIONS  = ['+','-','×','÷', '='];
+const SYMBOLS = ['%', 'AC', '<', '1/x', 'x^2', 'sqr'];
+
+//Ersts, input als undefinded setzen
 function CalculatorApp() {
-  const [ input, setInput ] = useState<string | null>(null);
-  const [ prevInput, setPrevInput ] = useState<string | null>(null);
-  const [ display, setDisplay ] = useState<string | null>(null);
-  const [ op, setOp ] = useState(null);
-  const handleNumberClick = (e: MouseEvent<HTMLButtonElement>) => {
-    const pressedKey = e.currentTarget.dataset.value as string;
-    if (input && input.includes(".") && pressedKey === ".") return;
-    if (!input) setInput(pressedKey);
-    setInput((prev) => (prev + input));
-  }
+  const [input, setInput] = useState<string>('');
+  const [prevInput, setPrevInput] = useState<string>('');
+  const [operation, setOperation] = useState<string | undefined>(undefined);
+  const [display, setDisplay] = useState<string>('0');
+
+  const handleNumberClick = (digit: string) => {
+    setInput((prev) => (prev === '0' ? digit : prev + digit));
+    setDisplay((prev) => (prev === '0' ? digit : prev + digit));
+  };
+
+  const clear = () => {
+    setInput('');
+    setPrevInput('');
+    setOperation(undefined);
+    setDisplay('0');
+  };
+
+  const handleOperationClick = (op: string) => {
+    if (!input) return;
+    setOperation(op);
+    setPrevInput(input);
+    setInput('');
+    setDisplay('');
+  };
+
+  const handleSymbolClick = (symbol: string) => {
+    switch (symbol) {
+      case '%': ; break;
+      case 'AC': clear(); break;
+      case '<': ; break;
+      case '1/x': ; break;
+      case 'x^2':  ; break;
+      case 'sqr': ; break;
+      default: return;
+    }
+
+    setPrevInput('');
+    setOperation(undefined);
+  };
+
+  const handleEquals = () => {
+    if (!prevInput || !input || !operation) return;
+    const a = parseFloat(prevInput);
+    const b = parseFloat(input);
+    let result: number | string = 0;
+
+    switch (operation) {
+      case '+': result = a + b; break;
+      case '-': result = a - b; break;
+      case '×': result = a * b; break;
+      case '÷': result = b === 0 ? 'Error' : a / b; break;
+      default: return;
+    }
+
+    setDisplay(String(result));
+    setInput(String(result));
+    setPrevInput('');
+    setOperation(undefined);
+  };
+
+
+
   
+
   return (
+    <section className="container-fluid vh-100 bg-body-secondary d-flex align-items-center justify-content-center">
+      <div className="calculator w-fit position-relative border border-width-1 border-primary">
+          <div className="bg-body-tertiary w-100">
+            <h1 className="text-end">{display}</h1>
+            <h4 className="text-end text-secondary">{display}</h4>
+          </div>
+          <div className="d-flex calculator-keys">
+            <div className="h-100">
+              <div className="calculator-keys--symbols grid">
+              {SYMBOLS.map((symbol) => (
+                <button className="g-col btn btn-secondary rounded-0" key={symbol} onClick={() => handleSymbolClick(symbol)}>
+                  {symbol}
+                </button>
+              ))}
+              </div>
+              <div className="calculator-keys--digits grid">
+                {DIGITS.map((digit) => (
+                <button className="g-col btn btn-secondary rounded-0" key={digit} onClick={() => handleNumberClick(digit)}>
+                  {digit}
+                </button>
+                ))}
+              </div>
+            </div>
+            <div className="calculator-keys--operations grid">
+              {OPERATIONS.map((op) => (
+                <button className={`btn btn-info rounded-0 ${op === '=' ? 'g-col span-2' : 'g-col'}`} key={op} onClick={op === '=' ? () => handleEquals() : () => handleOperationClick(op)}>
+                  {op}
+                </button>
+              ))}
+            </div></div>
+        </div>
+    </section>
     
-    <div>Hello</div>
-        
-  )
+  );
 }
 
 export default CalculatorApp;
