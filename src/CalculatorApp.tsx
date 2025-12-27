@@ -2,7 +2,7 @@
 
 // import { useState } from "react";
 
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 
 // export default function App() {
 //   const [display, setDisplay] = useState("0");
@@ -69,107 +69,173 @@ import { useState } from "react";
 // }
 
 
-const DIGITS = ['7','8','9','4','5','6', '1','2','3', '+/-', '0', '.', ];
-const OPERATIONS  = ['+','-','×','÷', '='];
-const SYMBOLS = ['%', 'AC', '<', '1/x', 'x^2', 'sqr'];
+const KEYS = ['7','8','9','4','5','6', '1','2','3', '+/-', '0', '.'];
+const OPERATIONS  = ['+','-','x','÷', '='];
+const ACTIONS = ['%', 'AC', '<', '1/x', 'x^2', 'sqr'];
+
+const isOperator = /[x/+-]/ ,endsWithOperator = /[x+-/]$/;
 
 //Ersts, input als undefinded setzen
 function CalculatorApp() {
-  const [input, setInput] = useState<string>('');
-  const [prevInput, setPrevInput] = useState<string>('');
-  const [operation, setOperation] = useState<string | undefined>(undefined);
+  const [input, setInput] = useState<string>('0');
+  const [prevDisplay, setPrevDisplay] = useState<string>('0');
   const [display, setDisplay] = useState<string>('0');
+  const [evaluated, setEvaluated] = useState<boolean>(false);
 
-  const handleNumberClick = (digit: string) => {
-    setInput((prev) => (prev === '0' ? digit : prev + digit));
-    setDisplay((prev) => (prev === '0' ? digit : prev + digit));
+  const maxDigitWarning = () =>  {
+      setInput("Digit Limit Met");
+      setTimeout(() => {
+        setInput(input);
+      }, 1000 )      
+    }
+  const evalErrorMessage = () =>  {
+      setInput("Error");
+      setTimeout(() => {
+        if (input !== 'Error') setInput(input);
+      }, 1000 )      
+    }
+  const handleDigit = (e: MouseEvent<HTMLButtonElement>) => {
+    if (!input.includes('Limit')) {
+      if (input.length > 21) {
+        maxDigitWarning();
+        return;
+      }
+      const digit = e.currentTarget.dataset.value;
+      if (!digit) return;
+      //Wenn berechnet, starten sie ein neues Input an: Input is gleich nummer, das Display ist gleich Input wenn es nicht 0 ist.
+      if (input === "0" && digit === "0") return;
+      if (evaluated) {
+        setInput(digit);
+        setDisplay(digit);
+      } else {
+          setInput((prev) => prev === "0" ? digit : isOperator.test(prev) ? digit : prev + digit);
+          setDisplay((prev) => prev === "0" ? digit : prev + digit);
+      }
+      setEvaluated(false);
+    }
+  };
+  const handleDecimal = (e: MouseEvent<HTMLButtonElement>) => {
+    const value = e.currentTarget.dataset.value;
+    if (!value || value !== '.') return;
+    if (!input.includes('.') && !input.includes('Limit')) {
+      setEvaluated(false);
+      if (evaluated) {
+          setInput((prev) => (prev === '0' ? '0.' : prev + '.'));
+          setDisplay((prev) => (prev === '' ? '0.' : prev + '.'));
+        } else {
+          setInput((prev) => (prev === '' ? '0.' : prev + '.'));
+          setDisplay((prev) => (prev === '0' ? '0.' : prev + '.'));
+        }
+        };
   };
 
-  const clear = () => {
-    setInput('');
-    setPrevInput('');
-    setOperation(undefined);
+  const reset = () => {
+    setInput('0');
     setDisplay('0');
+    setEvaluated(false);
+  };
+//Wenn click, setOperation, setPrevInput to currInput
+//setInput('')
+//
+  const handleOperation = (e: MouseEvent<HTMLButtonElement>) => {
+    const pressedKey = e.currentTarget.dataset.value;
+    if (!pressedKey) return;
+    //Wenn berechnet, starten sie ein neues Input an: Input is gleich nummer, das Display ist gleich Input wenn es nicht 0 ist.
+    setInput(pressedKey);
+    setEvaluated(false);
+    // Prufen, ob es schon berechnet ist,
+    //Ja ? dann setzen Input und Formel an.
+    //Nein ? dann prufen, ob es bein Negatives Zeichnen endest.
+    if (evaluated ) { setDisplay(input + pressedKey); setPrevDisplay(input); return;};
+    //Erlauben Sie nicht, zwei minus Zeichnen zu konkatenieren
+    if (pressedKey === '-' && display.charAt(display.length-1) === '-') return;
+    //
+    setDisplay((prev) => pressedKey === '-' ? prev + pressedKey : prevDisplay + pressedKey);
+    //Nein ? dann setzen vorheriges Wert zu Display, um es zu speichern, und Display zu "prev + op" an. 
+    //Ja ? dann prufen, ob aktuelles Key negativ ist.
+
+    
   };
 
-  const handleOperationClick = (op: string) => {
-    if (!input) return;
-    setOperation(op);
-    setPrevInput(input);
-    setInput('');
-    setDisplay('');
-  };
-
-  const handleSymbolClick = (symbol: string) => {
-    switch (symbol) {
-      case '%': ; break;
-      case 'AC': clear(); break;
-      case '<': ; break;
+  const handleActions = (e: MouseEvent<HTMLButtonElement>) => {
+    const action = e.currentTarget.dataset.value;
+    switch (action) {
+      case '%': ; handlePercentage(); break;
+      case 'AC': reset(); break;
+      case '<': handleDelete(); break;
       case '1/x': ; break;
       case 'x^2':  ; break;
       case 'sqr': ; break;
       default: return;
     }
 
-    setPrevInput('');
-    setOperation(undefined);
   };
 
-  const handleEquals = () => {
-    if (!prevInput || !input || !operation) return;
-    const a = parseFloat(prevInput);
-    const b = parseFloat(input);
-    let result: number | string = 0;
-
-    switch (operation) {
-      case '+': result = a + b; break;
-      case '-': result = a - b; break;
-      case '×': result = a * b; break;
-      case '÷': result = b === 0 ? 'Error' : a / b; break;
-      default: return;
+  const handleEvaluate = () => {
+    if (!evaluated && !input.includes('Limit')) {
+      let expression = display;
+      let result: number | undefined;
+      for (; endsWithOperator.test(expression);  ){
+        //Alle Zeichnen von Ende entfernen.
+        expression = expression.slice(0, -1)
+      };
+      try {
+        result = eval(expression.replace(/x/g, "*").replace(/÷/g, "/").replace(/-/g, "-").replace(/--/g,'+'));
+      } catch (e) {
+          evalErrorMessage();
+          console.warn('Error bei rechnung:' + e);
+          return;
+      }
+      setInput(String(result));
+      setDisplay(`${expression}=${result}`);
+      setEvaluated(true);
     }
-
-    setDisplay(String(result));
-    setInput(String(result));
-    setPrevInput('');
-    setOperation(undefined);
   };
 
+  const handleDelete = () => {
+    if (input !== '0' && !input.includes('Limit') && !input.includes('Error')) {
+      setInput(input.length === 1 ? '0' : input.slice(0,-1));
+    }
+  }
+  const handlePercentage = () => {
+    if (input !== '0' && !input.includes('Limit') && !input.includes('Error')) {
+      setInput(String(parseFloat(input)/100));
+    }
+  }
 
 
   
 
   return (
-    <section className="container-fluid vh-100 bg-body-secondary d-flex align-items-center justify-content-center">
-      <div className="calculator w-fit position-relative border border-width-1 border-primary">
-          <div className="bg-body-tertiary w-100">
-            <h1 className="text-end">{display}</h1>
-            <h4 className="text-end text-secondary">{display}</h4>
+    <section className="container-fluid vh-100 bg-body-secondary">
+      <div className="calculator grid position-relative border border-width-1 border-primary">
+          <div className="calculator--display bg-body-tertiary d-flex flex-column justify-content-around align-items-end">
+            <h4 className="text-secondary">{display}</h4>
+            <h1 className="">{input}</h1>
           </div>
-          <div className="d-flex calculator-keys">
-            <div className="h-100">
-              <div className="calculator-keys--symbols grid">
-              {SYMBOLS.map((symbol) => (
-                <button className="g-col btn btn-secondary rounded-0" key={symbol} onClick={() => handleSymbolClick(symbol)}>
-                  {symbol}
+          <div className="calculator--keys grid">
+              <div className="calculator--keys--symbols grid g-col-6">
+              {ACTIONS.map((action) => (
+                <button className="g-col btn btn-secondary rounded-0" key={action} onClick={handleActions} data-value={action}>
+                  {action}
                 </button>
               ))}
               </div>
-              <div className="calculator-keys--digits grid">
-                {DIGITS.map((digit) => (
-                <button className="g-col btn btn-secondary rounded-0" key={digit} onClick={() => handleNumberClick(digit)}>
-                  {digit}
+              <div className="calculator--keys--digits grid g-col-6">
+                {KEYS.map((key) => (
+                <button className="g-col btn btn-secondary rounded-0" key={key} onClick={key === '.' ? handleDecimal : key === '+/-' ? handleDigit : handleDigit} data-value={key}>
+                  {key}
                 </button>
                 ))}
               </div>
-            </div>
-            <div className="calculator-keys--operations grid">
-              {OPERATIONS.map((op) => (
-                <button className={`btn btn-info rounded-0 ${op === '=' ? 'g-col span-2' : 'g-col'}`} key={op} onClick={op === '=' ? () => handleEquals() : () => handleOperationClick(op)}>
-                  {op}
-                </button>
-              ))}
-            </div></div>
+              <div className="calculator--keys--operations grid g-col-6">
+                {OPERATIONS.map((op) => (
+                  <button data-value={op} className={`btn btn-info rounded-0 ${op === '=' ? '' : 'g-col'}`} key={op} onClick={op === '=' ? handleEvaluate : handleOperation}>
+                    {op}
+                  </button>
+                ))}
+              </div>
+          </div>
         </div>
     </section>
     
@@ -177,3 +243,4 @@ function CalculatorApp() {
 }
 
 export default CalculatorApp;
+

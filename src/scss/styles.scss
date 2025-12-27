@@ -93,26 +93,43 @@ $enable-cssgrid: true;
 @import "../../node_modules/bootstrap/scss/utilities/api";
 
 .calculator {
-    max-width: 450px;
-}
-.calculator-keys {
     --bs-gap: 0rem;
     --key-height: auto;
     --key-width: auto;
+    --bs-columns: 1;
+    --bs-rows: minmax(120px, auto) auto;
+    max-width: 450px;
+    height: fit-content;
+    width: fit-content;
+    align-self: center;
+    justify-self: center;
+    &--display {
+        grid-column: 1 / -1;
+        text-wrap: wrap;
+        word-wrap: break-word;
+    }
+    &--keys {
+        grid-column: 1 / -1;
+        --bs-columns: 2;
+        --bs-rows: 1fr;
+        grid-template-areas: 'main operations' 'main operations';
+        &--symbols {
+            --bs-rows: 2;
+            --bs-columns: 3;
+            grid-area: main;
+        }
+        &--digits {
+            --bs-columns: 3;
+            grid-area: main;
+        }    
+        &--operations {
+            --bs-rows: auto;
+            --bs-columns: repeat(5, minmax(100px, auto));
+            grid-template-rows: auto auto auto auto 2fr;
+            grid-area: operations;
+        }
+    }
     .btn {
-        max-width: var(--key-width, auto);
-        max-height: var(--key-height, auto);
+        font-size: 2rem;
     }
-    &--symbols {
-        --bs-rows: 2;
-        --bs-columns: 3;
-    }
-    &--digits {
-        --bs-columns: 3;
-    }    
-    &--operations {
-        --bs-rows: auto;
-        --bs-columns: 1;
-    }
-
 }

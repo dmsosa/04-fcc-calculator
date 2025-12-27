@@ -12318,28 +12318,45 @@ textarea.form-control-lg {
   }
 }
 .calculator {
-  max-width: 450px;
-}
-
-.calculator-keys {
   --bs-gap: 0rem;
   --key-height: auto;
   --key-width: auto;
+  --bs-columns: 1;
+  --bs-rows: minmax(120px, auto) auto;
+  max-width: 450px;
+  height: fit-content;
+  width: fit-content;
+  align-self: center;
+  justify-self: center;
 }
-.calculator-keys .btn {
-  max-width: var(--key-width, auto);
-  max-height: var(--key-height, auto);
+.calculator--display {
+  grid-column: 1/-1;
+  text-wrap: wrap;
+  word-wrap: break-word;
 }
-.calculator-keys--symbols {
+.calculator--keys {
+  grid-column: 1/-1;
+  --bs-columns: 2;
+  --bs-rows: 1fr;
+  grid-template-areas: "main operations" "main operations";
+}
+.calculator--keys--symbols {
   --bs-rows: 2;
   --bs-columns: 3;
+  grid-area: main;
 }
-.calculator-keys--digits {
+.calculator--keys--digits {
   --bs-columns: 3;
+  grid-area: main;
 }
-.calculator-keys--operations {
+.calculator--keys--operations {
   --bs-rows: auto;
-  --bs-columns: 1;
+  --bs-columns: repeat(5, minmax(100px, auto));
+  grid-template-rows: auto auto auto auto 2fr;
+  grid-area: operations;
+}
+.calculator .btn {
+  font-size: 2rem;
 }
 
 /*# sourceMappingURL=styles.css.map */
