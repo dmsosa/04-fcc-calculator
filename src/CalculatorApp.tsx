@@ -78,7 +78,6 @@ const isOperation = /([x/+\-÷])/ ,endsWithOperation = /[x+\-/÷]$/;
 //Ersts, input als undefinded setzen
 function CalculatorApp() {
   const [input, setInput] = useState<string>('0');
-  const [prevDisplay, setPrevDisplay] = useState<string>('0');
   const [display, setDisplay] = useState<string>('0');
   const [evaluated, setEvaluated] = useState<boolean>(false);
 
