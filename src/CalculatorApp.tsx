@@ -78,6 +78,8 @@ const isOperation = /([x/+\-÷])/ ,endsWithOperation = /[x+\-/÷]$/;
 //Ersts, input als undefinded setzen
 function CalculatorApp() {
   const [input, setInput] = useState<string>('0');
+  const [prevInput, setPrevInput] = useState<string>('0');
+  const [operation, setOp] = useState<string | undefined>(undefined);
   const [display, setDisplay] = useState<string>('0');
   const [evaluated, setEvaluated] = useState<boolean>(false);
 
@@ -94,7 +96,7 @@ function CalculatorApp() {
       }, 1000 )      
     }
   const handleDigit = (e: MouseEvent<HTMLButtonElement>) => {
-    if (!input.includes('Limit')) {
+    if (!input.includes('Error') && !input.includes('Limit') ) {
       if (input.length > MAX_DIGIT_LENGTH) {
         maxDigitWarning();
         return;
@@ -116,7 +118,7 @@ function CalculatorApp() {
   const handleDecimal = (e: MouseEvent<HTMLButtonElement>) => {
     const value = e.currentTarget.dataset.value;
     if (!value || value !== '.') return;
-    if (!input.includes('.') && !input.includes('Limit')) {
+    if (!input.includes('.') && !input.includes('Limit') && !input.includes('Error')) {
       //Prufen, ob das Grenzen nicht erreicht ist
       if (input.length > MAX_DIGIT_LENGTH) {
         maxDigitWarning();
@@ -127,8 +129,8 @@ function CalculatorApp() {
           setInput((prev) => (prev === '0' ? '0.' : prev + '.'));
           setDisplay((prev) => (prev === '' ? '0.' : prev + '.'));
         } else {
-          setInput((prev) => (prev === '' ? '0.' : prev + '.'));
-          setDisplay((prev) => (prev === '0' ? '0.' : prev + '.'));
+          setInput((prev) => (prev === '0' || isOperation.test(prev) ? '0.' : prev + '.'));
+          setDisplay((prev) => (prev === '0' ? '0.' : endsWithOperation.test(prev) ? prev + '0.' : prev + '.'));
         }
         };
   };
